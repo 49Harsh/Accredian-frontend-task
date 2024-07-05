@@ -1,157 +1,105 @@
+
+
+
 import React, { useState } from 'react';
+import axios from 'axios';
 
-function ReferralModal({ open, onClose }) {
+function ReferralModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
-    referrerName: '',
-    referrerEmail: '',
-    refereeName: '',
-    refereeEmail: '',
-    course: '',
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
   });
-
-  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.referrerName) newErrors.referrerName = 'Required';
-    if (!formData.referrerEmail) newErrors.referrerEmail = 'Required';
-    if (!formData.refereeName) newErrors.refereeName = 'Required';
-    if (!formData.refereeEmail) newErrors.refereeEmail = 'Required';
-    if (!formData.course) newErrors.course = 'Required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // Handle form submission logic here
-      onClose();
+    setIsLoading(true);
+    setMessage('');
+
+    try {
+      const response = await axios.post('http://localhost:5001/api/referrals', formData);
+      setMessage('Referral submitted successfully!');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        message: ''
+      });
+      setTimeout(() => {
+        onClose();
+        setMessage('');
+      }, 2000);
+    } catch (error) {
+      setMessage('Error submitting referral. Please try again.');
+      console.error('Error submitting referral:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!open) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-8 max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-4">Refer a Friend</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="referrerName" className="block text-sm font-medium text-gray-700">
-                Your Name
-              </label>
-              <input
-                type="text"
-                id="referrerName"
-                name="referrerName"
-                value={formData.referrerName}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-                  errors.referrerName ? 'border-red-500' : ''
-                }`}
-                required
-              />
-              {errors.referrerName && (
-                <p className="mt-1 text-sm text-red-500">{errors.referrerName}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="referrerEmail" className="block text-sm font-medium text-gray-700">
-                Your Email
-              </label>
-              <input
-                type="email"
-                id="referrerEmail"
-                name="referrerEmail"
-                value={formData.referrerEmail}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-                  errors.referrerEmail ? 'border-red-500' : ''
-                }`}
-                required
-              />
-              {errors.referrerEmail && (
-                <p className="mt-1 text-sm text-red-500">{errors.referrerEmail}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="refereeName" className="block text-sm font-medium text-gray-700">
-                Friend's Name
-              </label>
-              <input
-                type="text"
-                id="refereeName"
-                name="refereeName"
-                value={formData.refereeName}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-                  errors.refereeName ? 'border-red-500' : ''
-                }`}
-                required
-              />
-              {errors.refereeName && (
-                <p className="mt-1 text-sm text-red-500">{errors.refereeName}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="refereeEmail" className="block text-sm font-medium text-gray-700">
-                Friend's Email
-              </label>
-              <input
-                type="email"
-                id="refereeEmail"
-                name="refereeEmail"
-                value={formData.refereeEmail}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-                  errors.refereeEmail ? 'border-red-500' : ''
-                }`}
-                required
-              />
-              {errors.refereeEmail && (
-                <p className="mt-1 text-sm text-red-500">{errors.refereeEmail}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="course" className="block text-sm font-medium text-gray-700">
-                Course to Refer
-              </label>
-              <input
-                type="text"
-                id="course"
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 ${
-                  errors.course ? 'border-red-500' : ''
-                }`}
-                required
-              />
-              {errors.course && (
-                <p className="mt-1 text-sm text-red-500">{errors.course}</p>
-              )}
-            </div>
-          </div>
-          <div className="mt-6">
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Submit Referral
-            </button>
-          </div>
+        <h2 className="text-2xl font-bold mb-6">Refer a Friend</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Your Name"
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Your Email"
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Your Phone (optional)"
+            className="w-full p-2 border rounded"
+          />
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Referral Message (optional)"
+            className="w-full p-2 border rounded"
+            rows="3"
+          ></textarea>
+          <button
+            type="submit"
+            className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Submitting...' : 'Submit Referral'}
+          </button>
         </form>
+        {message && <p className="mt-4 text-center text-green-500">{message}</p>}
+        <button
+          onClick={onClose}
+          className="mt-4 w-full p-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
